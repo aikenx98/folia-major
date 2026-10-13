@@ -2680,6 +2680,7 @@ export default {
     "monetPortraitStyle": "封面形状",
     "monetPortraitStyleRectangular": "长方形",
     "monetPortraitStyleSquare": "正方形",
+    "monetCoverSize": "封面大小",
     "monetPortraitDragHanger": "拖拽调整按钮",
     "monetPortraitDragHangerShow": "显示",
     "monetPortraitDragHangerHide": "隐藏",

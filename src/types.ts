@@ -1002,6 +1002,8 @@ export interface MonetTuning {
   portraitOffsetX?: number;
   portraitStyle?: 'square' | 'rectangular';
   showPortraitDragHanger?: boolean;
+  /** 封面大小倍数。1 = 默认大小，范围 0.5 ~ 2.0 */
+  coverSize?: number;
 }
 
 export const DEFAULT_MONET_BACKGROUND_TUNING: MonetBackgroundTuning = {
@@ -1067,6 +1069,27 @@ export const DEFAULT_SORA_BACKGROUND_TUNING: SoraBackgroundTuning = {
   blank: false,
 };
 
+export interface DongbiBackgroundTuning {
+    /** Blob URL（仅运行时有效，不参与持久化） */
+    videoUrl?: string;
+    /** 用户选择的文件名，仅用于设置面板显示 */
+    videoName?: string;
+    /** 0-1 */
+    volume: number;
+    /** 0.25-4 */
+    playbackRate: number;
+    /** 失焦/隐藏时暂停，节省电量（壁纸模式推荐开启） */
+    pauseWhenHidden: boolean;
+}
+
+export const DEFAULT_DONGBI_BACKGROUND_TUNING: DongbiBackgroundTuning = {
+    videoUrl: undefined,
+    videoName: undefined,
+    volume: 0,
+    playbackRate: 1,
+    pauseWhenHidden: true,
+};
+
 export const DEFAULT_MONET_TUNING: MonetTuning = {
   keywordColoringEnabled: true,
   showDescription: true,
@@ -1077,6 +1100,7 @@ export const DEFAULT_MONET_TUNING: MonetTuning = {
   portraitOffsetX: 0,
   portraitStyle: 'square',
   showPortraitDragHanger: true,
+  coverSize: 1,
 };
 
 export interface StoredCappellaEmojiImage {

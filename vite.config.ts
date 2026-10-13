@@ -259,7 +259,7 @@ export default async function viteConfig(_config: ConfigEnv): Promise<UserConfig
         // extracting Electron into release/win-unpacked.tmp and renaming it to release/win-unpacked.
         // On Windows that rename fails with EPERM while anything holds the directory - so a dev
         // server left running in another terminal kills every `npm run build:electron`.
-        ignored: ['**/release/**', '**/models/**'],
+        ignored: ['**/release/**', '**/models/**', '**/.vs/**', '**/.git/**'],
       },
     },
     plugins: [

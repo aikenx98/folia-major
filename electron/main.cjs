@@ -42,6 +42,7 @@ const {
 const { resolveCacheLimit, selectEvictions } = require('./audioCachePrune.cjs');
 const { createAnalysisHost } = require('./analysis/host.cjs');
 const { createDebugHost, runtimeLine } = require('./debug/debugHost.cjs');
+const { createFullscreenDetector } = require('./fullscreenDetector.cjs');
 const { createCrashLog, installCrashHandlers } = require('./debug/crashLog.cjs');
 const { createModelStore } = require('./analysis/modelStore.cjs');
 const { resolveLinuxPasswordStore } = require('./linuxPasswordStore.cjs');
@@ -1804,6 +1805,7 @@ let pendingWindowStateSave = null;
 let windowStateSaveTimer = null;
 let wallpaperModeRelaunchTimer = null;
 let wallpaperModeRelaunchGeneration = 0;
+let fullscreenDetector = null;
 const x11WallpaperWindows = new WeakSet();
 // Must match CLICK_THROUGH_UNLOCK_HOTSPOT in src/utils/clickThroughUnlockHotspot.ts (the renderer
 // runs the same hit test on mousemove). The width covers the unlock button both at right-[180px]
@@ -5332,6 +5334,16 @@ app.whenReady().then(async () => {
   }
   scheduleStartupUpdateCheck();
   voiceInputPauseMonitor.syncState();
+  // 检测"其他应用全屏"，通过 IPC 通知渲染层暂停视频背景
+  fullscreenDetector = createFullscreenDetector({
+    getMainWindowHwnd: () => getMainWindowNativeHwnd(),
+    onFullscreenChanged: (isFullscreen) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('external-fullscreen-changed', isFullscreen);
+      }
+    },
+  });
+  fullscreenDetector.start();
 
   try {
     modSystem = createModSystem({
@@ -5403,6 +5415,10 @@ app.on('before-quit', () => {
   }
   voiceInputPauseMonitor.stop();
   displaySleepBlocker.stop();
+  if (fullscreenDetector) {
+    fullscreenDetector.stop();
+    fullscreenDetector = null;
+  }
   // Detach (graceful) instead of killing: the helper un-parents the window from the WorkerW
   // and repaints the layer before the window is destroyed — a window torn down while still
   // parented leaves its last frame stuck on the desktop. killHelper() is the fallback for

@@ -2678,6 +2678,7 @@ export default {
     "monetPortraitStyle": "Cover Shape",
     "monetPortraitStyleRectangular": "Rectangular",
     "monetPortraitStyleSquare": "Square",
+    "monetCoverSize": "Cover Size",
     "monetPortraitDragHanger": "Drag Hanger",
     "monetPortraitDragHangerShow": "Show",
     "monetPortraitDragHangerHide": "Hide",

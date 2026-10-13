@@ -2,6 +2,7 @@ import React from 'react';
 import type { MotionValue } from 'framer-motion';
 import type {
     AudioBands,
+    DongbiBackgroundTuning,
     LatentBackgroundTuning,
     MonetBackgroundImage,
     MonetBackgroundTuning,
@@ -37,6 +38,9 @@ export interface VisualizerBackgroundConfig {
     sora?: {
         tuning?: SoraBackgroundTuning;
     };
+    dongbi?: {
+        tuning?: DongbiBackgroundTuning;
+    };
     url?: {
         items?: UrlBackgroundItem[];
         selectedId?: string | null;
@@ -70,6 +74,10 @@ export interface VisualizerBackgroundActions {
     };
     sora?: {
         onTuningChange?: (patch: Partial<SoraBackgroundTuning>) => void;
+        onResetTuning?: () => void;
+    };
+    dongbi?: {
+        onTuningChange?: (patch: Partial<DongbiBackgroundTuning>) => void;
         onResetTuning?: () => void;
     };
     url?: {

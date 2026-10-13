@@ -150,6 +150,7 @@ export const MonetSettingsPanel: React.FC<VisualizerSettingsPanelProps> = ({
         portraitSource: monetTuning.portraitSource ?? DEFAULT_MONET_TUNING.portraitSource,
         portraitStyle: monetTuning.portraitStyle ?? DEFAULT_MONET_TUNING.portraitStyle ?? 'rectangular',
         showPortraitDragHanger: monetTuning.showPortraitDragHanger ?? DEFAULT_MONET_TUNING.showPortraitDragHanger,
+        coverSize: clampValue(monetTuning.coverSize ?? DEFAULT_MONET_TUNING.coverSize, 0.5, 2.0, DEFAULT_MONET_TUNING.coverSize),
     };
 
     const keywordColoringOptions = useMemo<PresetOption<boolean>[]>(() => ([
@@ -276,6 +277,18 @@ export const MonetSettingsPanel: React.FC<VisualizerSettingsPanelProps> = ({
                     onChange={(value) => onMonetTuningChange?.({ portraitStyle: value })}
                     isDaylight={isDaylight}
                     theme={theme}
+                />
+                <SliderControl
+                    label={t('options.monetCoverSize')}
+                    valueLabel={`${resolvedTuning.coverSize.toFixed(2)}x`}
+                    min={0.5}
+                    max={2.0}
+                    step={0.05}
+                    value={resolvedTuning.coverSize}
+                    onChange={(value) => onMonetTuningChange?.({ coverSize: value })}
+                    rangeInputClass={rangeInputClass}
+                    onSliderPointerDown={onSliderPointerDown}
+                    onSliderCommit={onSliderCommit}
                 />
 
                 <PresetGroup

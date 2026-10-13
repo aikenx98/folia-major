@@ -72,6 +72,11 @@ contextBridge.exposeInMainWorld('electron', {
     isLinuxX11: process.platform === 'linux' && !process.env.WAYLAND_DISPLAY,
     getSettings: () => ipcRenderer.invoke('get-settings'),
     saveSettings: (key, value) => ipcRenderer.invoke('save-settings', key, value),
+    onExternalFullscreenChanged: (callback) => {
+        const listener = (_event, isFullscreen) => callback(isFullscreen);
+        ipcRenderer.on('external-fullscreen-changed', listener);
+        return () => ipcRenderer.removeListener('external-fullscreen-changed', listener);
+    },
     onWallpaperModeChanged: (callback) => {
         const listener = (_event, settings) => callback(settings);
         ipcRenderer.on('wallpaper-mode-changed', listener);

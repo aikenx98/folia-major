@@ -340,6 +340,7 @@ const compressMonet = (t: any): any => ({
     pox: t.portraitOffsetX,
     mpy: t.portraitStyle,
     mpdh: t.showPortraitDragHanger,
+    mcs: t.coverSize,
 });
 const decompressMonet = (o: any): any => ({
     keywordColoringEnabled: o.kce !== undefined ? o.kce : DEFAULT_MONET_TUNING.keywordColoringEnabled,
@@ -351,6 +352,7 @@ const decompressMonet = (o: any): any => ({
     portraitOffsetX: o.pox !== undefined ? o.pox : DEFAULT_MONET_TUNING.portraitOffsetX,
     portraitStyle: o.mpy || DEFAULT_MONET_TUNING.portraitStyle,
     showPortraitDragHanger: o.mpdh !== undefined ? o.mpdh : DEFAULT_MONET_TUNING.showPortraitDragHanger,
+    coverSize: o.mcs !== undefined ? o.mcs : DEFAULT_MONET_TUNING.coverSize,
 });
 
 const compressPendolo = (t: any): any => ({

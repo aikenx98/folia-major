@@ -31,6 +31,7 @@ export const BUILTIN_VISUALIZER_MODES = [
 
 export const BUILTIN_VISUALIZER_BACKGROUND_MODES = [
     'common',
+    'dongbi',   // 新增：动壁（自定义本地视频背景）
     'latent',
     'monet',
     'nomand',

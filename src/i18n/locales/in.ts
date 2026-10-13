@@ -2544,6 +2544,7 @@ export default {
     "monetPortraitStyle": "Bentuk Sampul",
     "monetPortraitStyleRectangular": "Persegi Panjang",
     "monetPortraitStyleSquare": "Persegi",
+    "monetCoverSize": "Ukuran Sampul",
     "monetPortraitDragHanger": "Gantungan Seret",
     "monetPortraitDragHangerShow": "Tampilkan",
     "monetPortraitDragHangerHide": "Sembunyikan",

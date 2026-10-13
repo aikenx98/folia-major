@@ -145,8 +145,9 @@ const VisualizerMonet: React.FC<VisualizerMonetProps> = (props) => {
     const inactiveFontPx = resolveClampFontPx(1.08, 2, 1.48) * fontScale * largeScreenScale;
     const translationFontPx = resolveClampFontPx(0.94, 1.28, 1.14) * fontScale * subtitleFontScale * largeScreenScale;
     const rowMaxWidthPx = Math.round(MONET_ROW_BASE_MAX_WIDTH_PX * largeScreenScale);
-    const portraitMaxPx = Math.round(MONET_PORTRAIT_BASE_MAX_PX * largeScreenScale);
-    const portraitInnerMaxPx = Math.round(MONET_PORTRAIT_INNER_BASE_MAX_PX * largeScreenScale);
+    const coverSize = monetTuning.coverSize ?? 1;
+    const portraitMaxPx = Math.round(MONET_PORTRAIT_BASE_MAX_PX * largeScreenScale * coverSize);
+    const portraitInnerMaxPx = Math.round(MONET_PORTRAIT_INNER_BASE_MAX_PX * largeScreenScale * coverSize);
     const titleMaxRem = (2.8 * largeScreenScale).toFixed(3);
     const artistMaxRem = (1.8 * largeScreenScale).toFixed(3);
 
@@ -250,7 +251,7 @@ const VisualizerMonet: React.FC<VisualizerMonetProps> = (props) => {
                                             paddingBlock: '0.25em',
                                             marginTop: '-0.25em',
                                             marginBottom: '-0.12em',
-                                            textShadow: `0 14px 36px ${colorWithAlpha(theme.backgroundColor, 0.28)}`,
+                                            textShadow: `0 14px 36px ${colorWithAlpha(theme.backgroundColor, 0)}`,
                                         }}
                                     >
                                         {songTitle || 'Monet'}
@@ -329,12 +330,12 @@ const VisualizerMonet: React.FC<VisualizerMonetProps> = (props) => {
                             animate={{ opacity: 1, x: 0, scale: 1, rotate: 0 }}
                             transition={{ duration: 1.6, ease: [0.25, 1, 0.5, 1], delay: 0.25 }}
                             className="hidden min-w-0 items-center justify-center overflow-visible px-3 pr-5 sm:pr-8 md:flex lg:justify-end lg:pr-10 xl:pr-12 select-none"
-                            style={{ flex: `0 0 clamp(220px, 28vw, ${portraitMaxPx}px)` }}
+                            style={{ flex: `0 0 clamp(${Math.round(220 * coverSize)}px, ${28 * coverSize}vw, ${portraitMaxPx}px)` }}
                         >
                             {/* Bounding box wrapper that stays in the default position */}
                             <div
                                 className="relative w-full"
-                                style={{ maxWidth: `clamp(210px, 26vw, ${portraitInnerMaxPx}px)` }}
+                                style={{ maxWidth: `clamp(${Math.round(210 * coverSize)}px, ${26 * coverSize}vw, ${portraitInnerMaxPx}px)` }}
                             >
                                 
                                 {/* Dashed movable region border */}
@@ -361,7 +362,7 @@ const VisualizerMonet: React.FC<VisualizerMonetProps> = (props) => {
                                                 backgroundColor: colorWithAlpha(theme.backgroundColor, 0.86),
                                                 color: theme.primaryColor,
                                                 border: `1px solid ${colorWithAlpha(theme.primaryColor, 0.16)}`,
-                                                boxShadow: `0 4px 12px ${colorWithAlpha('#000000', 0.12)}`,
+                                                boxShadow: `0 4px 12px ${colorWithAlpha('#000000', 0)}`,
                                             }}
                                             title={t('common.reset')}
                                         >
@@ -451,15 +452,15 @@ const VisualizerMonet: React.FC<VisualizerMonetProps> = (props) => {
                                                         colorWithAlpha(theme.accentColor, 0.3)
                                                     ],
                                                     boxShadow: [
-                                                        `0 0 2px ${colorWithAlpha(theme.accentColor, 0.2)}, 0 8px 18px ${colorWithAlpha('#000000', 0.24)}`,
-                                                        `0 0 10px ${colorWithAlpha(theme.accentColor, 0.65)}, 0 8px 18px ${colorWithAlpha('#000000', 0.24)}`,
-                                                        `0 0 2px ${colorWithAlpha(theme.accentColor, 0.2)}, 0 8px 18px ${colorWithAlpha('#000000', 0.24)}`
+                                                        `0 0 2px ${colorWithAlpha(theme.accentColor, 0)}, 0 8px 18px ${colorWithAlpha('#000000', 0)}`,
+                                                        `0 0 10px ${colorWithAlpha(theme.accentColor, 0)}, 0 8px 18px ${colorWithAlpha('#000000', 0)}`,
+                                                        `0 0 2px ${colorWithAlpha(theme.accentColor, 0)}, 0 8px 18px ${colorWithAlpha('#000000', 0)}`
                                                     ]
                                                 } : {
                                                     borderColor: isHangerHovered
                                                         ? colorWithAlpha(theme.primaryColor, 0.36)
                                                         : colorWithAlpha(theme.primaryColor, 0),
-                                                    boxShadow: `0 8px 18px ${colorWithAlpha('#000000', 0.24)}`
+                                                    boxShadow: `0 8px 18px ${colorWithAlpha('#000000', 0)}`
                                                 }}
                                                 transition={isEditingPosition ? {
                                                     duration: 1.5,
@@ -481,7 +482,7 @@ const VisualizerMonet: React.FC<VisualizerMonetProps> = (props) => {
                                                 className="relative w-full aspect-square overflow-hidden rounded-[2rem] bg-center"
                                                 style={{
                                                     boxShadow: `0 36px 80px ${colorWithAlpha(theme.backgroundColor, 0.45)}, 0 20px 42px ${colorWithAlpha(theme.accentColor, 0.22)}, 0 0 0 1px ${colorWithAlpha(theme.primaryColor, 0.06)}`,
-                                                    backgroundColor: colorWithAlpha(theme.primaryColor, 0.08),
+                                                    backgroundColor: colorWithAlpha(theme.primaryColor, 0),
                                                 }}
                                             >
                                                 <MonetPortraitImage src={portraitUrl} />
@@ -492,7 +493,7 @@ const VisualizerMonet: React.FC<VisualizerMonetProps> = (props) => {
                                                 style={{
                                                     borderColor: colorWithAlpha(theme.primaryColor, 0.1),
                                                     backgroundColor: colorWithAlpha(theme.backgroundColor, 0.15),
-                                                    boxShadow: `0 24px 60px ${colorWithAlpha(theme.backgroundColor, 0.35)}`,
+                                                    boxShadow: `0 24px 60px ${colorWithAlpha(theme.backgroundColor, 0)}`,
                                                 }}
                                             >
                                                 <div
