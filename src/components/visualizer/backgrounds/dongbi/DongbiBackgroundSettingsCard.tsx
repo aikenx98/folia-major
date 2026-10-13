@@ -1,7 +1,17 @@
 import React, { useRef } from 'react';
 import type { DongbiBackgroundTuning, Theme } from '../../../../types';
+import { saveDongbiVideo, clearDongbiVideo } from '../../../../services/dongbiVideoStore';
 
 // src/components/visualizer/backgrounds/dongbi/DongbiBackgroundSettingsCard.tsx
+// 动壁的设置面板：选择视频、音量、播放速度、省电暂停。
+//
+// 选择视频时：
+// - 立即用 URL.createObjectURL(file) 生成 URL 让画面出得快
+// - 后台把文件写入 IndexedDB（saveDongbiVideo），写失败不影响本次播放
+// 清除视频时：
+// - 从 store 里移除 videoUrl / videoName
+// - 从 IndexedDB 里删除（clearDongbiVideo）
+// 旧的 Blob URL 由 DongbiBackground 里的生命周期管理统一 revoke。
 
 interface DongbiBackgroundSettingsCardProps {
     t: (key: string) => string;
@@ -23,15 +33,20 @@ const DongbiBackgroundSettingsCard: React.FC<DongbiBackgroundSettingsCardProps> 
         const file = e.target.files?.[0];
         if (!file) return;
         const url = URL.createObjectURL(file);
+        // 先把 URL 交给 store，让视频立刻播放，不等待 IndexedDB 写入
         onTuningChange?.({ videoUrl: url, videoName: file.name });
+        // 后台持久化文件，失败也不影响本次播放
+        void saveDongbiVideo(file).catch((err) => {
+            console.warn('[Dongbi] 视频持久化失败', err);
+        });
         e.target.value = '';
     };
 
     const handleClear = () => {
-        if (tuning.videoUrl?.startsWith('blob:')) {
-            URL.revokeObjectURL(tuning.videoUrl);
-        }
+        // 移除 store 里的引用；Blob URL 的实际 revoke 由 DongbiBackground 统一处理
         onTuningChange?.({ videoUrl: undefined, videoName: undefined });
+        // 清掉 IndexedDB，重启后不会再恢复
+        void clearDongbiVideo();
     };
 
     const pauseWhenHidden = tuning.pauseWhenHidden ?? true;
@@ -101,12 +116,12 @@ const DongbiBackgroundSettingsCard: React.FC<DongbiBackgroundSettingsCardProps> 
                 />
             </label>
 
-            {/* 性能开关：失焦/隐藏时暂停 */}
+            {/* 性能开关：省电暂停 */}
             <div className="flex items-center justify-between gap-3 pt-1">
                 <div className="min-w-0">
-                    <div className="text-xs font-medium">省电时暂停</div>
+                    <div className="text-xs font-medium">省电暂停</div>
                     <div className="text-[10px] opacity-50 leading-snug">
-                        其他窗口或游戏全屏时暂停播放，节省电量
+                        其他应用全屏 / 最大化或切标签页时暂停播放，节省电量
                     </div>
                 </div>
                 <button

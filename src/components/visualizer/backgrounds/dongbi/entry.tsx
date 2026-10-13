@@ -12,10 +12,11 @@ export default defineVisualizerBackground({
     order: 60,
     labelKey: 'options.visualizerBackgroundModeDongbi',
     labelFallback: '动壁',
-    render: ({ config, paused, staticMode }) => (
+    render: ({ config, actions, paused, staticMode }) => (
         <DongbiBackground
             tuning={config?.dongbi?.tuning}
-            paused={paused || staticMode}
+            paused={staticMode}
+            onTuningChange={actions?.dongbi?.onTuningChange}
         />
     ),
     renderSettingsPanel: ({ config, actions, t, isDaylight, theme, controlCardBg }) => (

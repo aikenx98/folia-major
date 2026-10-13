@@ -1,20 +1,27 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { DongbiBackgroundTuning } from '../../../../types';
+import { loadDongbiVideo } from '../../../../services/dongbiVideoStore';
+import { useVisualizerSettingsStore } from '../../../../stores/useVisualizerSettingsStore';
 
 // src/components/visualizer/backgrounds/dongbi/DongbiBackground.tsx
 // Renders a user-supplied local video as the shell background, cover-fit,
 // looped, with adjustable volume and playback rate.
 //
-// Performance notes (wallpaper usage):
-// - The layer is promoted to a GPU compositing layer via translateZ(0).
-// - When `pauseWhenHidden` is on, the video pauses on tab hide and, in the
-//   desktop app, when another application goes fullscreen (detected by the
-//   main process). Opening a small window over Folia does NOT pause it.
-// - On unmount (e.g. switching to another background), the video is paused.
+// 性能说明（壁纸模式）：
+// - 该层用 translateZ(0) 提升为 GPU 合成层。
+// - 当 pauseWhenHidden 打开时，切标签页/最小化、以及桌面版检测到其他应用
+//   全屏时暂停。打开小窗口覆盖 Folia 时不暂停。
+// - 组件卸载（切到其他背景）时，视频暂停。
+//
+// 生命周期：Blob URL 由这里统一管理，切换/清除/卸载时自动 revoke。
+// 恢复：启动时若 store 里没有 videoUrl，从 IndexedDB 读文件重建 URL，
+// 并直接写回 store（不依赖父组件的 onTuningChange，因为主界面渲染背景时
+// 不会经过设置面板，那个回调是 undefined）。
 
 interface DongbiBackgroundProps {
     tuning?: DongbiBackgroundTuning;
     paused?: boolean;
+    onTuningChange?: (patch: Partial<DongbiBackgroundTuning>) => void;
 }
 
 const DongbiBackground: React.FC<DongbiBackgroundProps> = ({ tuning, paused }) => {
@@ -26,6 +33,44 @@ const DongbiBackground: React.FC<DongbiBackgroundProps> = ({ tuning, paused }) =
 
     // 桌面版：主进程检测到"其他应用全屏"时置 true
     const [externalFullscreen, setExternalFullscreen] = useState(false);
+
+    // 生命周期管理：追踪当前活跃的 Blob URL，切换时延后 revoke 旧的
+    const prevUrlRef = useRef<string | undefined>(undefined);
+    useEffect(() => {
+        const prevUrl = prevUrlRef.current;
+        if (prevUrl === videoUrl) return;
+        prevUrlRef.current = videoUrl;
+
+        if (prevUrl?.startsWith('blob:')) {
+            const timer = window.setTimeout(() => {
+                try { URL.revokeObjectURL(prevUrl); } catch { /* 已释放 */ }
+            }, 3000);
+            return () => window.clearTimeout(timer);
+        }
+    }, [videoUrl]);
+
+    
+
+    // 启动时若 store 里没有 videoUrl，从 IndexedDB 恢复
+    // 直接调 store：主界面渲染背景时不经过设置面板，没有 actions 可用
+    useEffect(() => {
+        if (videoUrl) return;
+        let cancelled = false;
+        loadDongbiVideo().then((data) => {
+            if (cancelled || !data) return;
+            const url = URL.createObjectURL(data.blob);
+            useVisualizerSettingsStore.getState().handleSetDongbiBackgroundTuning({
+                videoUrl: url,
+                videoName: data.name,
+            });
+        }).catch(() => {
+            // 读取失败静默处理，用户可手动重新选视频
+        });
+        return () => {
+            cancelled = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // 订阅主进程的全屏检测信号（仅 Electron 桌面版有效）
     useEffect(() => {
@@ -60,9 +105,7 @@ const DongbiBackground: React.FC<DongbiBackgroundProps> = ({ tuning, paused }) =
         }
     }, [videoUrl, volume, playbackRate, paused, externalFullscreen]);
 
-    // 标签页隐藏时暂停（切标签页、最小化窗口）。
-    // 注意：不监听 blur/focus —— 打开小窗口会让 Folia 失焦，但那不应暂停。
-    // 其他应用全屏的情况由主进程的 externalFullscreen 信号处理。
+    // 标签页隐藏时暂停
     useEffect(() => {
         if (!pauseWhenHidden) return;
 

@@ -955,7 +955,7 @@ export const readStoredDongbiBackgroundTuning = (): DongbiBackgroundTuning => {
     try {
         const parsed = resolveStoredDongbiBackgroundTuning(JSON.parse(saved) as Partial<DongbiBackgroundTuning>);
         // Blob URL 在页面刷新后失效，读到就丢弃；文件名也一并清掉。
-        return { ...parsed, videoUrl: undefined, videoName: undefined };
+        return { ...parsed, videoUrl: undefined };
     } catch {
         return DEFAULT_DONGBI_BACKGROUND_TUNING;
     }

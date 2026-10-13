@@ -76,12 +76,21 @@ const download = async (url, destination) => {
 };
 
 const extractArchive = (archive, destination) => {
-  const result = spawnSync("tar", ["-xzf", archive, "-C", destination], {
-    stdio: "inherit",
-  });
-  if (result.error) throw result.error;
-  if (result.status !== 0)
-    throw new Error(`tar failed with exit code ${result.status}`);
+  // Git Bash 的 GNU tar 会把 "C:\..." 里的 C: 当作远程主机名 (host:path 语法)，
+  // 报 "Cannot connect to C:"。--force-local 让它把冒号当成本地路径的一部分。
+  // Windows 10+ 自带的 bsdtar 不认识这个选项会直接失败，所以失败时回退一次。
+  const attempts = [
+    ["--force-local", "-xzf", archive, "-C", destination],
+    ["-xzf", archive, "-C", destination],
+  ];
+  let lastResult = null;
+  for (const args of attempts) {
+    const result = spawnSync("tar", args, { stdio: "inherit" });
+    if (!result.error && result.status === 0) return;
+    lastResult = result;
+  }
+  if (lastResult?.error) throw lastResult.error;
+  throw new Error(`tar failed with exit code ${lastResult?.status ?? "unknown"}`);
 };
 
 /** Prepares the exact architecture directory consumed by the extraResources FileSet. */
@@ -98,6 +107,16 @@ export async function prepareBundledFfmpeg({
   const targetDir = path.join(outputRoot, asset.key);
   const targetBinary = path.join(targetDir, asset.binaryName);
   const markerPrefix = `Release: ${FFMPEG_RELEASE_TAG}\nArchive: ${asset.archive}\nArchive SHA-256: ${asset.sha256}\n`;
+  // 本地已有 ffmpeg.exe + share/folia-ffmpeg → 直接复用（用于手动下载）
+  try {
+    const { access } = await import("node:fs/promises");
+    await access(targetBinary);
+    await access(path.join(targetDir, "share", "folia-ffmpeg"));
+    console.log(`[ffmpeg] 使用本地缓存: ${targetDir}`);
+    return targetDir;
+  } catch {
+    // 不存在则继续走下载流程
+  }
   try {
     const cachedMarker = await readFile(
       path.join(targetDir, "BUNDLE-INFO.txt"),
