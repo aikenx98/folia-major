@@ -44,7 +44,7 @@ const DongbiBackgroundSettingsCard: React.FC<DongbiBackgroundSettingsCardProps> 
 
     const handleClear = () => {
         // 移除 store 里的引用；Blob URL 的实际 revoke 由 DongbiBackground 统一处理
-        onTuningChange?.({ videoUrl: undefined, videoName: undefined });
+        onTuningChange?.({ videoUrl: undefined, videoName: undefined, userPaused: false, savedTime: 0 });
         // 清掉 IndexedDB，重启后不会再恢复
         void clearDongbiVideo();
     };

@@ -942,6 +942,12 @@ export const resolveStoredDongbiBackgroundTuning = (
     pauseWhenHidden: typeof parsed.pauseWhenHidden === 'boolean'
         ? parsed.pauseWhenHidden
         : DEFAULT_DONGBI_BACKGROUND_TUNING.pauseWhenHidden,
+    userPaused: typeof parsed.userPaused === 'boolean'
+        ? parsed.userPaused
+        : DEFAULT_DONGBI_BACKGROUND_TUNING.userPaused,
+    savedTime: typeof parsed.savedTime === 'number' && Number.isFinite(parsed.savedTime)
+        ? Math.max(0, parsed.savedTime)
+        : DEFAULT_DONGBI_BACKGROUND_TUNING.savedTime,
 });
 
 export const readStoredDongbiBackgroundTuning = (): DongbiBackgroundTuning => {

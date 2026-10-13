@@ -5,9 +5,6 @@
 // 收集它们覆盖的屏幕矩形，在屏幕上打采样网格，统计多少比例的点落在至少一个
 // 其他窗口内。覆盖率 >= 阈值 → 判定为"被占据"。
 //
-// 用 Z-order 遍历而不是 EnumWindows：koffi 的回调注册在部分环境下不可靠，
-// 遍历 API 是纯函数调用，更稳定。
-//
 // 只支持 Windows，其他平台返回 no-op。
 
 'use strict';
@@ -22,15 +19,28 @@ const SAMPLE_GRID = 20;
 // 覆盖率阈值：达到或超过这个比例就认为"屏幕被其他应用占据"。
 const COVERAGE_THRESHOLD = 0.85;
 
-// 系统窗口类名，这些不参与覆盖率计算
+// 系统窗口类名，这些不参与覆盖率计算。
+// Aero Peek（任务栏悬停预览）和 Alt+Tab 也会创建顶层窗口，
+// 它们不属于"应用占据屏幕"，必须从名单里排除，否则鼠标一悬停就会误触发暂停。
 const EXCLUDED_CLASS_NAMES = new Set([
+    // 系统 shell
     'Shell_TrayWnd',
     'Shell_SecondaryTrayWnd',
     'Progman',
     'WorkerW',
     'SHELLDLL_DefView',
+    // UWP 外框
     'Windows.UI.Core.CoreWindow',
     'ApplicationFrameWindow',
+    // Aero Peek / 任务栏悬停预览
+    'TaskListThumbnailWnd',            // 任务栏图标悬停时的缩略图预览
+    'TaskListOverlayWnd',              // 任务栏覆盖层
+    'TaskSwitcherWnd',                 // Alt+Tab 切换器
+    'XamlExplorerHostIslandWindow',    // Win11 任务栏/预览宿主
+    'Xaml_WindowedPopupClass',         // Win11 弹出层
+    // DWM / 合成相关
+    'Dwm',
+    'Windows.UI.Composition.DesktopWindowContentBridge',
 ]);
 
 let lib = null;
@@ -102,7 +112,7 @@ const toBigInt = (v) => {
 };
 
 // 从 Z-order 顶部开始遍历所有顶层窗口，收集和目标显示器有交集的窗口矩形。
-const collectOtherWindowRects = (ownHwnd, monitorRect) => {
+const collectOtherWindowRects = (ownHwnd, monitorRect, debug = false) => {
     const rects = [];
 
     let hwnd = GetTopWindow(0);
@@ -139,9 +149,13 @@ const collectOtherWindowRects = (ownHwnd, monitorRect) => {
                                     top: r.top,
                                     right: r.right,
                                     bottom: r.bottom,
+                                    className,
                                 });
                             }
                         }
+                    } else if (debug && (className === 'TaskListThumbnailWnd' || className === 'TaskSwitcherWnd')) {
+                        // Aero Peek / Alt+Tab 弹出时打一行，方便确认排除生效
+                        console.log(`[FullscreenDetector] 已排除: ${className}`);
                     }
                 }
             }
@@ -178,12 +192,12 @@ const computeCoverage = (ownHwnd, debug = false) => {
     const height = area.bottom - area.top;
     if (width <= 0 || height <= 0) return 0;
 
-    const rects = collectOtherWindowRects(ownHwnd, area);
+    const rects = collectOtherWindowRects(ownHwnd, area, debug);
 
     if (debug) {
         console.log(`[FullscreenDetector] 收集到 ${rects.length} 个窗口矩形`);
-        if (rects.length > 0 && rects.length <= 5) {
-            rects.forEach(r => console.log(`  - [${r.left},${r.top}]-[${r.right},${r.bottom}]`));
+        if (rects.length > 0 && rects.length <= 6) {
+            rects.forEach(r => console.log(`  - ${r.className} [${r.left},${r.top}]-[${r.right},${r.bottom}]`));
         }
     }
 

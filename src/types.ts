@@ -1080,6 +1080,10 @@ export interface DongbiBackgroundTuning {
     playbackRate: number;
     /** 失焦/隐藏时暂停，节省电量（壁纸模式推荐开启） */
     pauseWhenHidden: boolean;
+    /** 用户点击封面手动暂停（区别于省电暂停） */
+    userPaused?: boolean;
+    /** 用户暂停时视频的 currentTime（秒），用于重启后恢复到那一帧 */
+    savedTime?: number;
 }
 
 export const DEFAULT_DONGBI_BACKGROUND_TUNING: DongbiBackgroundTuning = {
@@ -1088,6 +1092,8 @@ export const DEFAULT_DONGBI_BACKGROUND_TUNING: DongbiBackgroundTuning = {
     volume: 0,
     playbackRate: 1,
     pauseWhenHidden: true,
+    userPaused: false,
+    savedTime: 0,
 };
 
 export const DEFAULT_MONET_TUNING: MonetTuning = {
